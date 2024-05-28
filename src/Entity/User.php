@@ -39,14 +39,14 @@ class User
     #[ORM\Column]
     private ?\DateTimeImmutable $updated_at = null;
 
+    #[ORM\ManyToOne]
+    private ?Subscription $subscription_id = null;
+
     /**
      * @var Collection<int, Pdf>
      */
-    #[ORM\ManyToMany(targetEntity: Pdf::class, mappedBy: 'user_id')]
+    #[ORM\OneToMany(targetEntity: Pdf::class, mappedBy: 'user_id')]
     private Collection $pdfs;
-
-    #[ORM\ManyToOne]
-    private ?Subscription $subscription_id = null;
 
     public function __construct()
     {
@@ -154,6 +154,18 @@ class User
         return $this;
     }
 
+    public function getSubscriptionId(): ?Subscription
+    {
+        return $this->subscription_id;
+    }
+
+    public function setSubscriptionId(?Subscription $subscription_id): static
+    {
+        $this->subscription_id = $subscription_id;
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, Pdf>
      */
@@ -166,7 +178,7 @@ class User
     {
         if (!$this->pdfs->contains($pdf)) {
             $this->pdfs->add($pdf);
-            $pdf->addUserId($this);
+            $pdf->setUserId($this);
         }
 
         return $this;
@@ -175,20 +187,11 @@ class User
     public function removePdf(Pdf $pdf): static
     {
         if ($this->pdfs->removeElement($pdf)) {
-            $pdf->removeUserId($this);
+            // set the owning side to null (unless already changed)
+            if ($pdf->getUserId() === $this) {
+                $pdf->setUserId(null);
+            }
         }
-
-        return $this;
-    }
-
-    public function getSubscriptionId(): ?Subscription
-    {
-        return $this->subscription_id;
-    }
-
-    public function setSubscriptionId(?Subscription $subscription_id): static
-    {
-        $this->subscription_id = $subscription_id;
 
         return $this;
     }
