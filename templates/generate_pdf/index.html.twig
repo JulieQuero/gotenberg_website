@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Generate PDF{% endblock %}
+
+{% block body %}
+    <h1>Generate PDF</h1>
+    {{
+    form_start(form, {
+        'attr': { 'data-turbo': "false" }
+    })
+    }}
+    {{ form_row(form.url) }}
+    <button type="submit" class="btn">Generate PDF</button>
+    {{ form_end(form) }}
+{% endblock %}

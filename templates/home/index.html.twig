@@ -1,0 +1,17 @@
+{# templates/home.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <h1>Bienvenue sur notre générateur de PDF</h1>
+        <p class="info">Notre service vous permet de générer des documents PDF rapidement et efficacement avec deux types d'abonnements :</p>
+        <ul>
+            <li><strong>Freemium :</strong> Limité à 2 téléchargements par jour, gratuit.</li>
+            <li><strong>Prime :</strong> Jusqu'à 1000 téléchargements par jour, pour seulement 10.99€ par mois.</li>
+        </ul>
+        <a href="{{ path('pdf_generation') }}" class="btn">Générer un PDF</a>
+    </div>
+{% endblock %}
