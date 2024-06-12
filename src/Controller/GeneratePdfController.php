@@ -2,14 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\Pdf;
 use App\Service\GotenbergServiceCall;
+use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 class GeneratePdfController extends AbstractController
 {
@@ -17,7 +17,6 @@ class GeneratePdfController extends AbstractController
     public function __construct(
         private GotenbergServiceCall $pdfService,
         private LoggerInterface $logger
-
     ) {
     }
 
@@ -26,8 +25,13 @@ class GeneratePdfController extends AbstractController
      */
     #[Route('/generate/pdf/', name: 'app_generate_pdf')]
 
-    public function generatePdf(Request $request): Response
+    public function generatePdf(Request $request, EntityManagerInterface $entityManager): Response
     {
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
         $this->logger->info('Entrée dans la méthode generatePdf()');
         $form = $this->createFormBuilder()
             ->add('url', null, ['required' => true])
@@ -58,7 +62,8 @@ class GeneratePdfController extends AbstractController
 
                 $response = new Response($pdfData);
 
-                $response->headers->set('Content-Disposition', 'attachment; filename="nom_du_fichier.pdf"');
+                $currentDateTime = new \DateTime();
+                $response->headers->set('Content-Disposition', 'attachment; filename=pdf_'.$currentDateTime->format('Y-m-d_H:i:s').'.pdf');
 
                 register_shutdown_function(function() use ($tempFilePath) {
                     if (file_exists($tempFilePath)) {
@@ -66,7 +71,17 @@ class GeneratePdfController extends AbstractController
                     }
                 });
 
-                return $response;
+                $pdf = new Pdf();
+                $pdf->setTitle('pdf_'.$currentDateTime->format('Y-m-d_H:i:s').'.pdf');
+                $pdf->setCreatedAt(new \DateTimeImmutable());
+                $pdf->setUser($user);
+
+                $user->addPdf($pdf);
+
+                $entityManager->persist($pdf);
+                $entityManager->persist($user);
+
+                $entityManager->flush();
             }
 
             return $this->redirectToRoute('app_generate_pdf');

@@ -1,0 +1,33 @@
+{# templates/history/index.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Historique{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <h1>Historique des PDF générés</h1>
+        {% if pdfs is empty %}
+            <p>Vous n'avez généré aucun PDF pour le moment.</p>
+        {% else %}
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Titre</th>
+                    <th>Date de création</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for pdf in pdfs %}
+                    <tr>
+                        <td>{{ pdf.id }}</td>
+                        <td><a href="{{ pdf.title }}" target="_blank">{{ pdf.title }}</a></td>
+                        <td>{{ pdf.createdAt|date('Y-m-d H:i:s') }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+{% endblock %}
