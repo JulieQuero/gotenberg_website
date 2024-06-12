@@ -22,12 +22,12 @@ class PdfTest extends TestCase
         // Utilisation des setters
         $pdf->setTitle($title);
         $pdf->setCreatedAt($created_at);
-        $pdf->setUserId($user_id);
+        $pdf->setUser($user_id);
 
         // Vérification des getters
         $this->assertEquals($title, $pdf->getTitle());
         $this->assertEquals($created_at, $pdf->getCreatedAt());
-        $this->assertEquals($user_id, $pdf->getUserId());
+        $this->assertEquals($user_id, $pdf->getUser());
 
     }
 }

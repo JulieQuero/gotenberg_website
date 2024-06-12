@@ -6,9 +6,12 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-class User
+class User implements UserInterface ,PasswordAuthenticatedUserInterface
+
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -45,7 +48,7 @@ class User
     /**
      * @var Collection<int, Pdf>
      */
-    #[ORM\OneToMany(targetEntity: Pdf::class, mappedBy: 'user_id')]
+    #[ORM\OneToMany(targetEntity: Pdf::class, mappedBy: 'user')]
     private Collection $pdfs;
 
     public function __construct()
@@ -154,12 +157,12 @@ class User
         return $this;
     }
 
-    public function getSubscriptionId(): ?Subscription
+    public function getSubscription(): ?Subscription
     {
         return $this->subscription_id;
     }
 
-    public function setSubscriptionId(?Subscription $subscription_id): static
+    public function setSubscription(?Subscription $subscription_id): static
     {
         $this->subscription_id = $subscription_id;
 
@@ -178,7 +181,7 @@ class User
     {
         if (!$this->pdfs->contains($pdf)) {
             $this->pdfs->add($pdf);
-            $pdf->setUserId($this);
+            $pdf->setUser($this);
         }
 
         return $this;
@@ -188,11 +191,26 @@ class User
     {
         if ($this->pdfs->removeElement($pdf)) {
             // set the owning side to null (unless already changed)
-            if ($pdf->getUserId() === $this) {
-                $pdf->setUserId(null);
+            if ($pdf->getUser() === $this) {
+                $pdf->setUser(null);
             }
         }
 
         return $this;
+    }
+
+    public function getRoles(): array
+    {
+        return ['ROLE_USER'];
+    }
+
+    public function eraseCredentials(): void
+    {
+        // Effacer les données sensibles
+    }
+
+    public function getUserIdentifier(): string
+    {
+        return $this->getEmail();
     }
 }

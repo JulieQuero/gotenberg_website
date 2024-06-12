@@ -18,8 +18,12 @@ subscription_change:
 
 pdf_generation:
     path: /pdf/generate
-    controller: App\Controller\PdfController::generatePdf
+    controller: App\Controller\GeneratePdfController::generatePdf
 
 history:
     path: /history
     controller: App\Controller\HistoryController::index
+
+create_account:
+    path: /create-account
+    controller: App\Controller\SecurityController::createUser

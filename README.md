@@ -2,6 +2,21 @@
 
 ## Installation
 
+### Cloner le projet
+```bash
+git clone git@github.com:JulieQuero/gotenberg_website.git
+```
+
+### Installer les dépendances
+```bash
+composer install
+```
+
+### Lancement des fixtures
+```bash
+php bin/console doctrine:fixtures:load
+```
+
 ## Commande code quality
 
 ### PHP_CodeSniffer

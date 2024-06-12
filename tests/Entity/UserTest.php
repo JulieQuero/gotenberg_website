@@ -33,7 +33,7 @@ class UserTest extends TestCase
         $user->setRole($role);
         $user->setCreatedAt($createdAt);
         $user->setUpdatedAt($updatedAt);
-        $user->setSubscriptionId($subscriptionId);
+        $user->setSubscription($subscriptionId);
         $user->setSubscriptionEndAt($subscriptionEndAt);
 
         // Vérification des getters
@@ -44,7 +44,7 @@ class UserTest extends TestCase
         $this->assertEquals($role, $user->getRole());
         $this->assertEquals($createdAt, $user->getCreatedAt());
         $this->assertEquals($updatedAt, $user->getUpdatedAt());
-        $this->assertEquals($subscriptionId, $user->getSubscriptionId());
+        $this->assertEquals($subscriptionId, $user->getSubscription());
         $this->assertEquals($subscriptionEndAt, $user->getSubscriptionEndAt());
 
     }
