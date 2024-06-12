@@ -5,6 +5,13 @@
 {% block title %}Change Subscription{% endblock %}
 
 {% block body %}
+
+    {% if error is defined %}
+        <div class="popup">
+            <p>{{ error }}</p>
+        </div>
+    {% endif %}
+
     <div class="container">
         <h1>Change Your Subscription</h1>
         <div class="subscription-list">

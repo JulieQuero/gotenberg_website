@@ -3,12 +3,15 @@
 namespace App\Controller;
 
 use App\Entity\Pdf;
+use App\Repository\PdfRepository;
 use App\Service\GotenbergServiceCall;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
 
 class GeneratePdfController extends AbstractController
@@ -16,7 +19,8 @@ class GeneratePdfController extends AbstractController
 
     public function __construct(
         private GotenbergServiceCall $pdfService,
-        private LoggerInterface $logger
+        private LoggerInterface $logger,
+        private PdfRepository $pdfEntity
     ) {
     }
 
@@ -32,7 +36,19 @@ class GeneratePdfController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        $this->logger->info('Entrée dans la méthode generatePdf()');
+        $UserSubscription = $user->getSubscription();
+        if (
+            $this->pdfEntity->countPdfGeneratedByUserOnDate(
+                $user->getId(),
+                new \DateTimeImmutable('today'),
+                new \DateTimeImmutable('tomorrow')
+            ) >= ($UserSubscription->getPdfLimit())) {
+            return $this->redirectToRoute(
+                'subscription_change',
+                ['error' => 'Vous avez atteint votre limite de PDF générés pour aujourd\'hui. Veuillez souscrire à un abonnement supérieur pour continuer.']
+            );
+        }
+
         $form = $this->createFormBuilder()
             ->add('url', null, ['required' => true])
             ->getForm();
@@ -54,25 +70,14 @@ class GeneratePdfController extends AbstractController
             $pdfUrl = $_ENV['MICROSERVICE_URL'] . '/' . $pdfFilePath;
 
 
-            $tempFilePath = tempnam(sys_get_temp_dir(), 'pdf_');
             $pdfData = file_get_contents($pdfUrl);
-            file_put_contents($tempFilePath, $pdfData);
 
             if ($pdfData !== false) {
-
-                $response = new Response($pdfData);
-
                 $currentDateTime = new \DateTime();
-                $response->headers->set('Content-Disposition', 'attachment; filename=pdf_'.$currentDateTime->format('Y-m-d_H:i:s').'.pdf');
-
-                register_shutdown_function(function() use ($tempFilePath) {
-                    if (file_exists($tempFilePath)) {
-                        unlink($tempFilePath);
-                    }
-                });
 
                 $pdf = new Pdf();
-                $pdf->setTitle('pdf_'.$currentDateTime->format('Y-m-d_H:i:s').'.pdf');
+                $pdf->setTitle('pdf_'.$currentDateTime->format('Y-m-d_H_i_s').'.pdf');
+                $pdf->setUrl($pdfUrl);
                 $pdf->setCreatedAt(new \DateTimeImmutable());
                 $pdf->setUser($user);
 
@@ -82,6 +87,8 @@ class GeneratePdfController extends AbstractController
                 $entityManager->persist($user);
 
                 $entityManager->flush();
+
+                return $this->redirectToRoute('app_download_pdf', ['id' => $pdf->getId()]);
             }
 
             return $this->redirectToRoute('app_generate_pdf');
@@ -90,5 +97,25 @@ class GeneratePdfController extends AbstractController
         return $this->render('generate_pdf/index.html.twig', [
             'form' => $form->createView(),
         ]);
+    }
+
+    #[Route('/download/pdf/{id}', name: 'app_download_pdf')]
+    public function downloadPdf(int $id, PdfRepository $pdfRepository): Response
+    {
+        $pdf = $pdfRepository->find($id);
+
+        if (!$pdf) {
+            throw $this->createNotFoundException('Le PDF n\'existe pas.');
+        }
+        $currentDateTime = new \DateTime();
+
+        $pdfName = $pdf->getTitle();
+        $pdfPath = $pdf->getUrl();
+
+        $pdfData = file_get_contents($pdfPath);
+        $response = new Response($pdfData);
+        $response->headers->set('Content-Disposition', 'attachment; filename=pdf_'.$currentDateTime->format('Y-m-d_H:i:s').'.pdf');
+
+        return $response;
     }
 }
