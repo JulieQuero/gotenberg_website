@@ -16,6 +16,7 @@
                     <th>ID</th>
                     <th>Titre</th>
                     <th>Date de création</th>
+                    <th>Actions</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -24,6 +25,9 @@
                         <td>{{ pdf.id }}</td>
                         <td><a href="{{ pdf.title }}" target="_blank">{{ pdf.title }}</a></td>
                         <td>{{ pdf.createdAt|date('Y-m-d H:i:s') }}</td>
+                        <td>
+                            <a href="{{ path('app_download_pdf', {'id': pdf.id}) }}" class="btn">Télécharger</a>
+                        </td>
                     </tr>
                 {% endfor %}
                 </tbody>

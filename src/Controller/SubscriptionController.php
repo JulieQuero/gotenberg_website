@@ -37,10 +37,13 @@ class SubscriptionController extends AbstractController
             $this->addFlash('error', 'Subscription not found.');
         }
 
+        $error = $request->query->get('error');
+
         return $this->render('subscription/subscription_change.html.twig', [
             'subscriptions' => $subscriptions,
             'user' => $user,
-            'currentSubscription' => $user->getSubscription()
+            'currentSubscription' => $user->getSubscription(),
+            'error' => $error
         ]);
     }
 }
